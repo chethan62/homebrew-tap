@@ -1,0 +1,41 @@
+name: cask
+
+# Proves the cask in this repo actually installs: a macOS runner taps this
+# checkout, installs the cask, and runs the installed app's `--version`. A cask
+# that lints but 404s or hashes wrong is exactly what this catches.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  install:
+    name: brew install --cask torrentx
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Tap this checkout and install
+        run: |
+          brew tap chethan62/tap "$GITHUB_WORKSPACE"
+          brew install --cask torrentx
+
+      - name: The installed app runs
+        run: |
+          app="/Applications/TorrentX.app/Contents/MacOS/torrentx"
+          if [ ! -x "$app" ]; then
+            app="$HOME/Applications/TorrentX.app/Contents/MacOS/torrentx"
+          fi
+          [ -x "$app" ] || { echo "::error::TorrentX.app not found in /Applications or ~/Applications"; exit 1; }
+          out=$("$app" --version)
+          echo "version output: $out"
+          case "$out" in
+            TorrentX\ 18.*) ;;
+            *) echo "::error::unexpected --version output: $out"; exit 1 ;;
+          esac
+
+      - name: Uninstall
+        run: brew uninstall --cask torrentx
