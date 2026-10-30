@@ -1,10 +1,17 @@
 name: bump
 
 # Keeps the cask on the latest TorrentX release without anyone remembering to.
-# Hourly rather than release-triggered on purpose: torrentx's own workflow would
-# need a token with write access to this repo to dispatch here, and this needs no
-# secret at all — one HEAD plus a 14 MB download an hour.
+#
+# Fast path: torrentx's release workflow posts a `release` repository_dispatch
+# here as soon as the .dmg is published. Backstop: the hourly schedule, which
+# also catches a release whose dispatch never arrived, and needs no credentials.
+#
+# The bump itself runs on ubuntu; the macOS install check is dispatched
+# separately because a macOS job that `needs:` another job was cancelled on
+# arrival twice, while the same job as a workflow of its own runs fine.
 on:
+  repository_dispatch:
+    types: [release]
   schedule:
     - cron: "17 * * * *"
   workflow_dispatch:
