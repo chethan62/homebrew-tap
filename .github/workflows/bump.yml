@@ -13,25 +13,28 @@ on:
 
 permissions:
   contents: write
+  actions: write # to dispatch the install check below
 
 jobs:
   bump:
     name: bump to the latest release
     runs-on: ubuntu-latest
-    outputs:
-      changed: ${{ steps.commit.outputs.changed }}
     steps:
       - uses: actions/checkout@v7
 
       - name: Update version + sha256
         run: ./scripts/bump-cask.sh
 
-      - name: Commit if the cask moved
-        id: commit
+      # A push made with GITHUB_TOKEN does not start other workflows (that is
+      # GitHub's recursion guard), so the install check is dispatched explicitly.
+      # `workflow_dispatch` is the documented exception to that rule — and
+      # a macOS job that only exists after a bump is cheaper than one hourly.
+      - name: Commit, then ask for the install check
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          echo "changed=false" >> "$GITHUB_OUTPUT"
           if git diff --quiet -- Casks/torrentx.rb; then
-            echo "cask already current"
+            echo "cask already current, nothing to verify"
             exit 0
           fi
           ver=$(sed -n 's/^  version "\(.*\)"$/\1/p' Casks/torrentx.rb)
@@ -40,41 +43,5 @@ jobs:
           git add Casks/torrentx.rb
           git commit -m "cask: bump to $ver"
           git push
-          echo "changed=true" >> "$GITHUB_OUTPUT"
-
-  # A push made with GITHUB_TOKEN does not trigger other workflows, so this
-  # cannot rely on cask.yml firing after the bump: the freshly bumped cask is
-  # installed and run right here instead.
-  install:
-    name: install the bumped cask
-    needs: [bump]
-    if: needs.bump.outputs.changed == 'true'
-    runs-on: macos-14
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          ref: master
-
-      - name: Tap this checkout and install
-        run: |
-          brew tap chethan62/tap "$GITHUB_WORKSPACE"
-          brew trust --cask chethan62/tap/torrentx
-          brew install --cask torrentx
-
-      - name: The installed app runs
-        run: |
-          app="/Applications/TorrentX.app/Contents/MacOS/torrentx"
-          if [ ! -x "$app" ]; then
-            app="$HOME/Applications/TorrentX.app/Contents/MacOS/torrentx"
-          fi
-          [ -x "$app" ] || { echo "::error::TorrentX.app not found in /Applications or ~/Applications"; exit 1; }
-          out=$("$app" --version)
-          want=$(sed -n 's/^  version "\(.*\)"$/\1/p' Casks/torrentx.rb)
-          echo "version output: $out (cask pins $want)"
-          case "$out" in
-            "TorrentX $want") ;;
-            *) echo "::error::the installed app is not the version the cask pins"; exit 1 ;;
-          esac
-
-      - name: Uninstall
-        run: brew uninstall --cask torrentx
+          gh workflow run cask.yml
+          echo "dispatched the install check for $ver"
