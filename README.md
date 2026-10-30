@@ -4,7 +4,8 @@
 brew install --cask chethan62/tap/torrentx
 ```
 
-Apple silicon only (the release ships an arm64 `.dmg`), macOS 11+.
+Apple silicon only (the release ships an arm64 `.dmg`), macOS 11+. A third-party tap needs trusting
+once — Homebrew prompts, and `brew trust --cask chethan62/tap/torrentx` does the same in a script.
 
 ## What this installs
 
