@@ -21,6 +21,9 @@ jobs:
       - name: Tap this checkout and install
         run: |
           brew tap chethan62/tap "$GITHUB_WORKSPACE"
+          # Homebrew refuses casks from a third-party tap until it is trusted;
+          # interactively it prompts, on a runner it just fails.
+          brew trust --cask chethan62/tap/torrentx
           brew install --cask torrentx
 
       - name: The installed app runs
