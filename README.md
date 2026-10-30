@@ -16,14 +16,10 @@ attribute, so it launches without the Gatekeeper prompt a browser download produ
 
 ## After a TorrentX release
 
-The cask pins a version and a hash, so both have to move together:
+Nothing to do. `bump.yml` runs hourly, reads the latest release, and if the cask's `version`/`sha256`
+no longer match it commits the bump and then installs that cask on a macOS runner and checks the
+installed app reports the pinned version. A stale cask therefore fails the tap's own CI, not a user's
+`brew install`.
 
-```bash
-ver=18.8.0
-sha=$(curl -sL "https://github.com/chethan62/torrentx/releases/download/v$ver/TorrentX-$ver-arm64-mac.dmg" | sha256sum | cut -d' ' -f1)
-sed -i "s/^  version .*/  version \"$ver\"/; s/^  sha256 .*/  sha256 \"$sha\"/" Casks/torrentx.rb
-```
-
-`brew style Casks/torrentx.rb` locally, then push — the `cask` workflow taps this checkout on a
-macOS runner, installs the cask and runs the installed `TorrentX --version`, so a stale hash fails
-CI instead of a user's install.
+To do it by hand (or to test before pushing): `./scripts/bump-cask.sh` — idempotent, prints
+`up to date: <version>` and changes nothing when the cask already matches.
