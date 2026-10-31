@@ -35,10 +35,10 @@ jobs:
           [ -x "$app" ] || { echo "::error::TorrentX.app not found in /Applications or ~/Applications"; exit 1; }
           out=$("$app" --version)
           echo "version output: $out"
-          case "$out" in
-            TorrentX\ 18.*) ;;
-            *) echo "::error::unexpected --version output: $out"; exit 1 ;;
-          esac
+          # Compare against what the cask claims, not a pattern: the pin is the
+          # thing that can be wrong, so `18.*` would pass a stale 18.8.0 cask.
+          want=$(sed -n 's/^  version "\(.*\)"$/\1/p' Casks/torrentx.rb)
+          [ "$out" = "TorrentX $want" ] || { echo "::error::cask pins $want but the app reports '$out'"; exit 1; }
 
       - name: Uninstall
         run: brew uninstall --cask torrentx
