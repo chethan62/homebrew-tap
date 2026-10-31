@@ -4,9 +4,10 @@ name: cask
 # checkout, installs the cask, and runs the installed app's `--version`. A cask
 # that lints but 404s or hashes wrong is exactly what this catches.
 #
-# TODO: this job is torrentx-specific — tap name, cask name, app path and the
-# `TorrentX <version>` output format are hardcoded below. A second cask needs a
-# per-cask mapping (or one matrix entry each) before this covers it.
+# TODO(#1): this job is torrentx-specific — tap name, cask name, app path and
+# the `TorrentX <version>` output format are hardcoded below. A second cask needs
+# a per-cask mapping (or one matrix entry each) before this covers it:
+# https://github.com/chethan62/homebrew-tap/issues/1
 on:
   push:
   pull_request:
