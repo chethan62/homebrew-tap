@@ -3,6 +3,10 @@ name: cask
 # Proves the cask in this repo actually installs: a macOS runner taps this
 # checkout, installs the cask, and runs the installed app's `--version`. A cask
 # that lints but 404s or hashes wrong is exactly what this catches.
+#
+# TODO: this job is torrentx-specific — tap name, cask name, app path and the
+# `TorrentX <version>` output format are hardcoded below. A second cask needs a
+# per-cask mapping (or one matrix entry each) before this covers it.
 on:
   push:
   pull_request:
