@@ -1,6 +1,6 @@
 cask "torrentx" do
-  version "18.9.1"
-  sha256 "8bd1e4ed6b16d6c12c837eed112d10c1e7436382d2d91075ed8c7cbf24ca8d35"
+  version "18.9.2"
+  sha256 "cc6ed0778c253a2eb9de3b19340d3c0e8e05e13eef513d86a7272c5bbe609a1f"
 
   url "https://github.com/chethan62/torrentx/releases/download/v#{version}/TorrentX-#{version}-arm64-mac.dmg"
   name "TorrentX"
